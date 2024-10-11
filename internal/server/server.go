@@ -1,10 +1,13 @@
 package server
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/silazemli/lab1-template/internal/server/models"
+	"gorm.io/gorm"
 )
 
 type server struct {
@@ -16,11 +19,12 @@ func NewServer(db personStorage) server {
 	srv := server{}
 	srv.db = db
 	srv.srv = *echo.New()
-	srv.srv.GET("/persons/:id", srv.GetPerson)
-	srv.srv.GET("/persons", srv.GetAll)
-	srv.srv.POST("/persons", srv.CreatePerson)
-	srv.srv.PATCH("/persons/:id", srv.PatchPerson)
-	srv.srv.DELETE("/persons/:id", srv.DeletePerson)
+	api := srv.srv.Group("/api/v1")
+	api.GET("/persons/:id", srv.GetPerson)
+	api.GET("/persons", srv.GetAll)
+	api.POST("/persons", srv.CreatePerson)
+	api.PATCH("/persons/:id", srv.PatchPerson)
+	api.DELETE("/persons/:id", srv.DeletePerson)
 
 	return srv
 }
@@ -35,19 +39,21 @@ func (srv *server) Start() error {
 
 func (srv *server) GetPerson(ctx echo.Context) error {
 	person, err := srv.db.GetPerson(ctx.Param("id"))
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return ctx.JSON(http.StatusNotFound, echo.Map{})
+	}
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, echo.Map{"error": err})
 	}
-	return ctx.JSON(http.StatusFound, person)
+	return ctx.JSON(http.StatusOK, person)
 }
 
 func (srv *server) GetAll(ctx echo.Context) error {
 	persons, err := srv.db.GetAll()
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, echo.Map{"error": err})
+		return ctx.JSON(http.StatusInternalServerError, echo.Map{"error": err})
 	}
-	return ctx.JSON(http.StatusFound, persons)
-
+	return ctx.JSON(http.StatusOK, persons)
 }
 
 func (srv *server) CreatePerson(ctx echo.Context) error {
@@ -60,6 +66,7 @@ func (srv *server) CreatePerson(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, echo.Map{"error": err})
 	}
+	ctx.Response().Header().Set(echo.HeaderLocation, fmt.Sprintf("%s/%d", ctx.Request().RequestURI, person.ID))
 	return ctx.JSON(http.StatusCreated, person)
 }
 
