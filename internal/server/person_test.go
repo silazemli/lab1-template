@@ -56,7 +56,7 @@ func TestServer_PatchPerson(t *testing.T) {
 		t.Errorf("Should not produce an error")
 	}
 	code := w.Result().StatusCode
-	if code != 201 {
+	if code != 200 {
 		t.Errorf("Test Failed")
 	}
 }
@@ -71,7 +71,7 @@ func TestServer_GetPerson(t *testing.T) {
 		t.Errorf("Should not produce an error")
 	}
 	code := w.Result().StatusCode
-	if code != 201 {
+	if code != 200 {
 		t.Errorf("Test Failed")
 	}
 }
@@ -86,7 +86,7 @@ func TestServer_GetAll(t *testing.T) {
 		t.Errorf("Should not produce an error")
 	}
 	code := w.Result().StatusCode
-	if code != 201 {
+	if code != 200 {
 		t.Errorf("Test Failed")
 	}
 }
@@ -101,7 +101,7 @@ func TestServer_DeleteAll(t *testing.T) {
 		t.Errorf("Should not produce an error")
 	}
 	code := w.Result().StatusCode
-	if code != 201 {
+	if code != 204 {
 		t.Errorf("Test Failed")
 	}
 }
