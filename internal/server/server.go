@@ -89,5 +89,6 @@ func (srv *server) PatchPerson(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, echo.Map{"error": err})
 	}
+	person, err = srv.db.GetPerson(ctx.Param("id"))
 	return ctx.JSON(http.StatusOK, person)
 }
